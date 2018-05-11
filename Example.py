@@ -1,38 +1,34 @@
 import numpy as np
 from sklearn.decomposition import PCA, IncrementalPCA
 
-class likeAnnData:
-    def setX(self, X):
+class LikeAnnData:
+    def __init__(self, X):
         self.X = X
 
-    def Chunked(self, chunks):
+    def chunked(self, chunks):
         start = 0
         for i in range(chunks):
             stop = start + len(self.X[i::chunks])
             yield self.X[start:stop]
             start = stop
 
-D = likeAnnData()
-
-D.setX(np.random.rand(100000, 1000))
+D = LikeAnnData(np.random.rand(100000, 1000))
 
 n_comp = 80
 n_chunks = 100
 
-batch_size = 2000
-
-ipca = IncrementalPCA(n_components=n_comp, batch_size = batch_size)
+ipca = IncrementalPCA(n_components=n_comp)
 
 print('Training IPCA')
 
-for chunk in D.Chunked(n_chunks):
+for chunk in D.chunked(n_chunks):
     ipca.partial_fit(chunk)
 
 OutIPCA = np.array([])
 
 print('Fitting IPCA')
 
-for chunk in D.Chunked(n_chunks):
+for chunk in D.chunked(n_chunks):
     Tr = ipca.transform(chunk)
     OutIPCA = np.vstack([OutIPCA, Tr]) if OutIPCA.size else Tr
 
